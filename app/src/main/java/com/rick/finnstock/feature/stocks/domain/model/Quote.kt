@@ -1,4 +1,4 @@
-package com.rick.finnstock.feataure.stocks.domain.model
+package com.rick.finnstock.feature.stocks.domain.model
 
 data class Quote(
     val symbol: String,

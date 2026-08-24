@@ -1,4 +1,4 @@
-package com.rick.finnstock.feataure.stocks.data.remote
+package com.rick.finnstock.feature.stocks.data.remote
 
 /**
  * Display labels match the Finnhub-style ticker banner; request symbols are Finnhub free-tier IDs.

@@ -1,9 +1,9 @@
-package com.rick.finnstock.feataure.stocks.data.mapper
+package com.rick.finnstock.feature.stocks.data.mapper
 
-import com.rick.finnstock.feataure.stocks.data.remote.NewsDto
-import com.rick.finnstock.feataure.stocks.data.remote.QuoteDto
-import com.rick.finnstock.feataure.stocks.domain.model.NewsArticle
-import com.rick.finnstock.feataure.stocks.domain.model.Quote
+import com.rick.finnstock.feature.stocks.data.remote.NewsDto
+import com.rick.finnstock.feature.stocks.data.remote.QuoteDto
+import com.rick.finnstock.feature.stocks.domain.model.NewsArticle
+import com.rick.finnstock.feature.stocks.domain.model.Quote
 
 fun QuoteDto.toDomain(
     symbol: String,

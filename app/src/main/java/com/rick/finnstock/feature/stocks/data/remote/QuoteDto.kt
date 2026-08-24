@@ -1,4 +1,4 @@
-package com.rick.finnstock.feataure.stocks.data.remote
+package com.rick.finnstock.feature.stocks.data.remote
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

@@ -1,9 +1,9 @@
-package com.rick.finnstock.feataure.stocks.data.remote
+package com.rick.finnstock.feature.stocks.data.remote
 
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface StocksApi {
+interface FinnhubApi {
     @GET("quote")
     suspend fun getQuote(
         @Query("symbol") symbol: String,

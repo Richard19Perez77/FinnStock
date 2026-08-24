@@ -1,4 +1,4 @@
-package com.rick.finnstock.feataure.stocks.presentation.mvi
+package com.rick.finnstock.feature.stocks.presentation.mvi
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -32,8 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.rick.finnstock.feataure.stocks.domain.model.NewsArticle
-import com.rick.finnstock.feataure.stocks.domain.model.Quote
+import com.rick.finnstock.feature.stocks.domain.model.NewsArticle
+import com.rick.finnstock.feature.stocks.domain.model.Quote
 import com.rick.finnstock.ui.theme.FinnStockTheme
 import java.util.Locale
 import java.util.concurrent.TimeUnit

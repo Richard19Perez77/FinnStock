@@ -1,4 +1,4 @@
-package com.rick.finnstock.feataure.stocks.presentation.mvi
+package com.rick.finnstock.feature.stocks.presentation.mvi
 
 object StocksReducer {
 

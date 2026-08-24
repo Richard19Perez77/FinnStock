@@ -1,21 +1,21 @@
-package com.rick.finnstock.feataure.stocks.data.repository
+package com.rick.finnstock.feature.stocks.data.repository
 
 import com.rick.finnstock.BuildConfig
-import com.rick.finnstock.feataure.stocks.data.mapper.toDomain
-import com.rick.finnstock.feataure.stocks.data.mapper.toDomainOrNull
-import com.rick.finnstock.feataure.stocks.data.remote.StocksApi
-import com.rick.finnstock.feataure.stocks.data.remote.TickerSymbol
-import com.rick.finnstock.feataure.stocks.domain.model.NewsArticle
-import com.rick.finnstock.feataure.stocks.domain.model.Quote
-import com.rick.finnstock.feataure.stocks.domain.repository.StocksRepository
+import com.rick.finnstock.feature.stocks.data.mapper.toDomain
+import com.rick.finnstock.feature.stocks.data.mapper.toDomainOrNull
+import com.rick.finnstock.feature.stocks.data.remote.FinnhubApi
+import com.rick.finnstock.feature.stocks.data.remote.TickerSymbol
+import com.rick.finnstock.feature.stocks.domain.model.NewsArticle
+import com.rick.finnstock.feature.stocks.domain.model.Quote
+import com.rick.finnstock.feature.stocks.domain.repository.MarketRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 
-class NetworkStocksRepository @Inject constructor(
-    private val api: StocksApi,
-) : StocksRepository {
+class NetworkMarketRepository @Inject constructor(
+    private val api: FinnhubApi,
+) : MarketRepository {
 
     override suspend fun getQuotes(): Result<List<Quote>> = runCatching {
         ensureApiKey()

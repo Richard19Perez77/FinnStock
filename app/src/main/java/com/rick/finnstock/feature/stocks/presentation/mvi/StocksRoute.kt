@@ -1,4 +1,4 @@
-package com.rick.finnstock.feataure.stocks.presentation.mvi
+package com.rick.finnstock.feature.stocks.presentation.mvi
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

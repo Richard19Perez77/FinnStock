@@ -1,7 +1,7 @@
-package com.rick.finnstock.feataure.stocks.presentation.mvi
+package com.rick.finnstock.feature.stocks.presentation.mvi
 
-import com.rick.finnstock.feataure.stocks.domain.model.NewsArticle
-import com.rick.finnstock.feataure.stocks.domain.model.Quote
+import com.rick.finnstock.feature.stocks.domain.model.NewsArticle
+import com.rick.finnstock.feature.stocks.domain.model.Quote
 
 object StocksContract {
 

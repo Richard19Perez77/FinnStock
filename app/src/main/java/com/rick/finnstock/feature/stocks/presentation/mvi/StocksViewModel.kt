@@ -1,9 +1,9 @@
-package com.rick.finnstock.feataure.stocks.presentation.mvi
+package com.rick.finnstock.feature.stocks.presentation.mvi
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rick.finnstock.feataure.stocks.domain.usecase.GetMarketNewsUseCase
-import com.rick.finnstock.feataure.stocks.domain.usecase.GetStocksUseCase
+import com.rick.finnstock.feature.stocks.domain.usecase.GetMarketNewsUseCase
+import com.rick.finnstock.feature.stocks.domain.usecase.GetQuotesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StocksViewModel @Inject constructor(
-    private val getStocksUseCase: GetStocksUseCase,
+    private val getQuotesUseCase: GetQuotesUseCase,
     private val getMarketNewsUseCase: GetMarketNewsUseCase,
 ) : ViewModel() {
 
@@ -57,7 +57,7 @@ class StocksViewModel @Inject constructor(
 
     private suspend fun loadQuotes() {
         dispatch(StocksContract.PartialChange.QuotesLoading)
-        getStocksUseCase()
+        getQuotesUseCase()
             .onSuccess { quotes ->
                 dispatch(StocksContract.PartialChange.QuotesLoaded(quotes))
             }
