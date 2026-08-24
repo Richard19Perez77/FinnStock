@@ -5,7 +5,6 @@ import com.rick.finnstock.core.di.AuthInterceptor
 import com.rick.finnstock.core.di.FinnhubApiKey
 import com.rick.finnstock.core.di.LoggingInterceptor
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,10 +30,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideMoshi(): Moshi =
-        Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
+    fun provideMoshi(): Moshi = Moshi.Builder().build()
 
     @Provides
     @Singleton

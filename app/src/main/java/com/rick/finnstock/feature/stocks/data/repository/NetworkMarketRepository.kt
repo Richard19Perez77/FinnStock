@@ -21,8 +21,8 @@ import javax.inject.Inject
 
 class NetworkMarketRepository @Inject constructor(
     private val api: FinnhubApi,
-    @FinnhubApiKey private val apiKey: String,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:FinnhubApiKey private val apiKey: String,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : MarketRepository {
 
     /**
@@ -31,7 +31,7 @@ class NetworkMarketRepository @Inject constructor(
     override suspend fun getQuotes(): MarketResult<List<Quote>> {
         if (apiKey.isBlank()) return MarketResult.Failure(MarketError.MissingApiKey)
 
-        val perSymbol = try {
+        val perSymbol = runCatchingCancellable {
             withContext(ioDispatcher) {
                 supervisorScope {
                     TickerSymbol.entries
@@ -39,11 +39,7 @@ class NetworkMarketRepository @Inject constructor(
                         .awaitAll()
                 }
             }
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (throwable: Throwable) {
-            return MarketResult.Failure(throwable.toMarketError())
-        }
+        }.getOrElse { return MarketResult.Failure(it.toMarketError()) }
 
         val quotes = perSymbol.mapNotNull { it.getOrNull() }
         if (quotes.isNotEmpty()) return MarketResult.Success(quotes)
@@ -76,13 +72,11 @@ class NetworkMarketRepository @Inject constructor(
     private suspend fun <T> runCatchingMarket(
         block: suspend () -> T,
     ): MarketResult<T> =
-        try {
-            MarketResult.Success(withContext(ioDispatcher) { block() })
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (throwable: Throwable) {
-            MarketResult.Failure(throwable.toMarketError())
-        }
+        runCatchingCancellable { withContext(ioDispatcher) { block() } }
+            .fold(
+                onSuccess = { MarketResult.Success(it) },
+                onFailure = { MarketResult.Failure(it.toMarketError()) },
+            )
 
     private suspend fun <T> runCatchingCancellable(
         block: suspend () -> T,

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -140,7 +142,14 @@ private fun NewsHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.toggleable(
+                value = isShuffleEnabled,
+                onValueChange = onShuffleChanged,
+                role = Role.Switch,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = "Shuffle",
                 style = MaterialTheme.typography.labelLarge,
@@ -148,7 +157,7 @@ private fun NewsHeader(
             )
             Switch(
                 checked = isShuffleEnabled,
-                onCheckedChange = onShuffleChanged,
+                onCheckedChange = null,
             )
         }
     }

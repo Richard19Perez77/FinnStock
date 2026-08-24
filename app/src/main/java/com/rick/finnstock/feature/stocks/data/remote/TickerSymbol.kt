@@ -5,12 +5,12 @@ package com.rick.finnstock.feature.stocks.data.remote
  */
 enum class TickerSymbol(
     val requestSymbol: String,
-    val displayName: String,
+    val displayName: String = requestSymbol,
 ) {
-    TSMC("TSM","TSMC"),
-    AAPL("AAPL", "AAPL"),
-    Nvidia("NVDA","NVDA"),
-    Alphabet("GOOGL","GOOGL"),
-    Microsoft("MSFT","MSFT"),
-    Amazon("AMZN","AMZN")
+    TSMC("TSM", "TSMC"),
+    AAPL("AAPL"),
+    NVDA("NVDA"),
+    GOOGL("GOOGL"),
+    MSFT("MSFT"),
+    AMZN("AMZN"),
 }

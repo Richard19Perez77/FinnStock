@@ -11,6 +11,6 @@ interface FinnhubApi {
 
     @GET("news")
     suspend fun getMarketNews(
-        @Query("category") category: String = "general",
+        @Query("category") category: String,
     ): List<NewsDto>
 }

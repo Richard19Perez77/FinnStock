@@ -22,8 +22,6 @@ object StocksContract {
         data class ToggleShuffle(val enabled: Boolean) : Intent
     }
 
-    sealed interface Effect
-
     sealed interface PartialChange {
         data object QuotesLoading : PartialChange
         data class QuotesLoaded(val quotes: List<Quote>) : PartialChange
