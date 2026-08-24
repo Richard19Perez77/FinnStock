@@ -7,23 +7,55 @@ object StocksReducer {
         change: StocksContract.PartialChange,
     ): StocksContract.State =
         when (change) {
-            StocksContract.PartialChange.Loading ->
+            StocksContract.PartialChange.QuotesLoading ->
                 state.copy(
-                    isLoading = true,
-                    errorMessage = null,
+                    isLoadingQuotes = true,
+                    quotesError = null,
                 )
 
             is StocksContract.PartialChange.QuotesLoaded ->
                 state.copy(
-                    isLoading = false,
+                    isLoadingQuotes = false,
                     quotes = change.quotes,
-                    errorMessage = null,
+                    quotesError = null,
                 )
 
-            is StocksContract.PartialChange.Failed ->
+            is StocksContract.PartialChange.QuotesFailed ->
                 state.copy(
-                    isLoading = false,
-                    errorMessage = change.message,
+                    isLoadingQuotes = false,
+                    quotesError = change.message,
+                )
+
+            StocksContract.PartialChange.NewsLoading ->
+                state.copy(
+                    isLoadingNews = true,
+                    newsError = null,
+                )
+
+            is StocksContract.PartialChange.NewsLoaded ->
+                state.copy(
+                    isLoadingNews = false,
+                    news = change.news,
+                    shuffledNews = if (state.isShuffleEnabled) change.news.shuffled() else emptyList(),
+                    newsError = null,
+                )
+
+            is StocksContract.PartialChange.NewsFailed ->
+                state.copy(
+                    isLoadingNews = false,
+                    newsError = change.message,
+                )
+
+            StocksContract.PartialChange.Refreshing ->
+                state.copy(isRefreshing = true)
+
+            StocksContract.PartialChange.RefreshFinished ->
+                state.copy(isRefreshing = false)
+
+            is StocksContract.PartialChange.ShuffleToggled ->
+                state.copy(
+                    isShuffleEnabled = change.enabled,
+                    shuffledNews = if (change.enabled) state.news.shuffled() else emptyList(),
                 )
         }
 }

@@ -8,4 +8,9 @@ interface StocksApi {
     suspend fun getQuote(
         @Query("symbol") symbol: String,
     ): QuoteDto
+
+    @GET("news")
+    suspend fun getMarketNews(
+        @Query("category") category: String = "general",
+    ): List<NewsDto>
 }
