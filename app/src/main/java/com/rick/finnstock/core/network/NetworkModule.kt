@@ -19,6 +19,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    // https://finnhub.io/api/v1/
     private const val FINNHUB_BASE_URL = "https://finnhub.io/api/v1/"
 
     @Provides
