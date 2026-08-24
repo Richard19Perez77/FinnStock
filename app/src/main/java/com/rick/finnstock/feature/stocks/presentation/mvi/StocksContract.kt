@@ -1,24 +1,18 @@
 package com.rick.finnstock.feature.stocks.presentation.mvi
 
+import com.rick.finnstock.feature.stocks.domain.model.MarketError
 import com.rick.finnstock.feature.stocks.domain.model.NewsArticle
 import com.rick.finnstock.feature.stocks.domain.model.Quote
 
 object StocksContract {
 
     data class State(
-        val isLoadingQuotes: Boolean = false,
-        val quotes: List<Quote> = emptyList(),
-        val quotesError: String? = null,
-        val isLoadingNews: Boolean = false,
-        val news: List<NewsArticle> = emptyList(),
-        val shuffledNews: List<NewsArticle> = emptyList(),
-        val newsError: String? = null,
+        val quotes: SectionState<List<Quote>> = SectionState.Loading,
+        val news: SectionState<List<NewsArticle>> = SectionState.Loading,
         val isShuffleEnabled: Boolean = false,
+        val shuffleSeed: Long = 0L,
         val isRefreshing: Boolean = false,
-    ) {
-        val displayedNews: List<NewsArticle>
-            get() = if (isShuffleEnabled) shuffledNews else news
-    }
+    )
 
     sealed interface Intent {
         data object Load : Intent
@@ -33,12 +27,12 @@ object StocksContract {
     sealed interface PartialChange {
         data object QuotesLoading : PartialChange
         data class QuotesLoaded(val quotes: List<Quote>) : PartialChange
-        data class QuotesFailed(val message: String) : PartialChange
+        data class QuotesFailed(val error: MarketError) : PartialChange
         data object NewsLoading : PartialChange
-        data class NewsLoaded(val news: List<NewsArticle>) : PartialChange
-        data class NewsFailed(val message: String) : PartialChange
+        data class NewsLoaded(val news: List<NewsArticle>, val seed: Long) : PartialChange
+        data class NewsFailed(val error: MarketError) : PartialChange
         data object Refreshing : PartialChange
         data object RefreshFinished : PartialChange
-        data class ShuffleToggled(val enabled: Boolean) : PartialChange
+        data class ShuffleToggled(val enabled: Boolean, val seed: Long) : PartialChange
     }
 }

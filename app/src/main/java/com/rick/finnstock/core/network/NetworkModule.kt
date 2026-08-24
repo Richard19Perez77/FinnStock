@@ -1,6 +1,9 @@
 package com.rick.finnstock.core.network
 
 import com.rick.finnstock.BuildConfig
+import com.rick.finnstock.core.di.AuthInterceptor
+import com.rick.finnstock.core.di.FinnhubApiKey
+import com.rick.finnstock.core.di.LoggingInterceptor
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -12,7 +15,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -23,7 +25,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    @Named("finnhub_api_key")
+    @FinnhubApiKey
     fun provideFinnhubApiKey(): String = BuildConfig.FINNHUB_API_KEY
 
     @Provides
@@ -35,8 +37,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @AuthInterceptor
     fun provideAuthInterceptor(
-        @Named("finnhub_api_key") apiKey: String,
+        @FinnhubApiKey apiKey: String,
     ): Interceptor = Interceptor { chain ->
         val request = chain.request()
         val url = request.url.newBuilder()
@@ -47,19 +50,26 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: Interceptor): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
+    @LoggingInterceptor
+    fun provideLoggingInterceptor(): Interceptor =
+        HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BASIC
             } else {
                 HttpLoggingInterceptor.Level.NONE
             }
         }
-        return OkHttpClient.Builder()
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        @AuthInterceptor authInterceptor: Interceptor,
+        @LoggingInterceptor loggingInterceptor: Interceptor,
+    ): OkHttpClient =
+        OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
-            .addInterceptor(logging)
+            .addInterceptor(loggingInterceptor)
             .build()
-    }
 
     @Provides
     @Singleton

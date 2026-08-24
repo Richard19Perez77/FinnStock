@@ -2,6 +2,7 @@ package com.rick.finnstock.feature.stocks.presentation.mvi
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rick.finnstock.feature.stocks.domain.model.MarketResult
 import com.rick.finnstock.feature.stocks.domain.usecase.GetMarketNewsUseCase
 import com.rick.finnstock.feature.stocks.domain.usecase.GetQuotesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class StocksViewModel @Inject constructor(
@@ -34,7 +36,12 @@ class StocksViewModel @Inject constructor(
             StocksContract.Intent.RetryQuotes -> viewModelScope.launch { loadQuotes() }
             StocksContract.Intent.RetryNews -> viewModelScope.launch { loadNews() }
             is StocksContract.Intent.ToggleShuffle ->
-                dispatch(StocksContract.PartialChange.ShuffleToggled(intent.enabled))
+                dispatch(
+                    StocksContract.PartialChange.ShuffleToggled(
+                        enabled = intent.enabled,
+                        seed = Random.nextLong(),
+                    ),
+                )
         }
     }
 
@@ -44,10 +51,10 @@ class StocksViewModel @Inject constructor(
                 dispatch(StocksContract.PartialChange.Refreshing)
             }
             coroutineScope {
-                val quotesJob = async { loadQuotes() }
-                val newsJob = async { loadNews() }
-                quotesJob.await()
-                newsJob.await()
+                val quotes = async { loadQuotes() }
+                val news = async { loadNews() }
+                quotes.await()
+                news.await()
             }
             if (isRefresh) {
                 dispatch(StocksContract.PartialChange.RefreshFinished)
@@ -57,32 +64,29 @@ class StocksViewModel @Inject constructor(
 
     private suspend fun loadQuotes() {
         dispatch(StocksContract.PartialChange.QuotesLoading)
-        getQuotesUseCase()
-            .onSuccess { quotes ->
-                dispatch(StocksContract.PartialChange.QuotesLoaded(quotes))
-            }
-            .onFailure { error ->
-                dispatch(
-                    StocksContract.PartialChange.QuotesFailed(
-                        error.message ?: "Failed to load quotes",
-                    ),
-                )
-            }
+        when (val result = getQuotesUseCase()) {
+            is MarketResult.Success ->
+                dispatch(StocksContract.PartialChange.QuotesLoaded(result.data))
+
+            is MarketResult.Failure ->
+                dispatch(StocksContract.PartialChange.QuotesFailed(result.error))
+        }
     }
 
     private suspend fun loadNews() {
         dispatch(StocksContract.PartialChange.NewsLoading)
-        getMarketNewsUseCase()
-            .onSuccess { news ->
-                dispatch(StocksContract.PartialChange.NewsLoaded(news))
-            }
-            .onFailure { error ->
+        when (val result = getMarketNewsUseCase()) {
+            is MarketResult.Success ->
                 dispatch(
-                    StocksContract.PartialChange.NewsFailed(
-                        error.message ?: "Failed to load news",
+                    StocksContract.PartialChange.NewsLoaded(
+                        news = result.data,
+                        seed = Random.nextLong(),
                     ),
                 )
-            }
+
+            is MarketResult.Failure ->
+                dispatch(StocksContract.PartialChange.NewsFailed(result.error))
+        }
     }
 
     private fun dispatch(change: StocksContract.PartialChange) {

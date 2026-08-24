@@ -25,6 +25,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,12 +33,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rick.finnstock.feature.stocks.domain.model.MarketError
 import com.rick.finnstock.feature.stocks.domain.model.NewsArticle
 import com.rick.finnstock.feature.stocks.domain.model.Quote
 import com.rick.finnstock.ui.theme.FinnStockTheme
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +49,15 @@ fun StocksScreen(
     onIntent: (StocksContract.Intent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val newsToShow = remember(state.news, state.isShuffleEnabled, state.shuffleSeed) {
+        val articles = state.news.contentOrNull.orEmpty()
+        if (state.isShuffleEnabled) {
+            articles.shuffled(Random(state.shuffleSeed))
+        } else {
+            articles
+        }
+    }
+
     PullToRefreshBox(
         isRefreshing = state.isRefreshing,
         onRefresh = { onIntent(StocksContract.Intent.Refresh) },
@@ -58,9 +70,7 @@ fun StocksScreen(
         ) {
             item {
                 QuoteTickerBanner(
-                    quotes = state.quotes,
-                    isLoading = state.isLoadingQuotes,
-                    errorMessage = state.quotesError,
+                    state = state.quotes,
                     onRetry = { onIntent(StocksContract.Intent.RetryQuotes) },
                 )
                 HorizontalDivider()
@@ -74,56 +84,30 @@ fun StocksScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
-            when {
-                state.isLoadingNews && state.news.isEmpty() -> {
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .height(24.dp)
-                                    .width(24.dp),
-                                strokeWidth = 2.dp,
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("Loading news…")
-                        }
-                    }
+            when (val news = state.news) {
+                SectionState.Loading -> item {
+                    LoadingRow(
+                        label = "Loading news…",
+                        modifier = Modifier.padding(24.dp),
+                    )
                 }
 
-                state.newsError != null && state.news.isEmpty() -> {
-                    item {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = state.newsError,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Button(onClick = { onIntent(StocksContract.Intent.RetryNews) }) {
-                                Text("Retry")
-                            }
-                        }
-                    }
+                is SectionState.Failure -> item {
+                    ErrorSection(
+                        error = news.error,
+                        onRetry = { onIntent(StocksContract.Intent.RetryNews) },
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
                 }
 
-                else -> {
-                    items(
-                        items = state.displayedNews,
-                        key = { it.id },
-                    ) { article ->
-                        NewsRow(
-                            article = article,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
+                is SectionState.Content -> items(
+                    items = newsToShow,
+                    key = { it.id },
+                ) { article ->
+                    NewsRow(
+                        article = article,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
                 }
             }
         }
@@ -206,9 +190,7 @@ private fun NewsRow(
 
 @Composable
 private fun QuoteTickerBanner(
-    quotes: List<Quote>,
-    isLoading: Boolean,
-    errorMessage: String?,
+    state: SectionState<List<Quote>>,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -219,48 +201,21 @@ private fun QuoteTickerBanner(
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
-        when {
-            isLoading && quotes.isEmpty() -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .height(24.dp)
-                            .width(24.dp),
-                        strokeWidth = 2.dp,
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Loading quotes…",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
+        when (state) {
+            SectionState.Loading ->
+                LoadingRow(
+                    label = "Loading quotes…",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
 
-            errorMessage != null && quotes.isEmpty() -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    Button(onClick = onRetry) {
-                        Text("Retry")
-                    }
-                }
-            }
+            is SectionState.Failure ->
+                ErrorSection(
+                    error = state.error,
+                    onRetry = onRetry,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
 
-            else -> {
+            is SectionState.Content ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -269,11 +224,10 @@ private fun QuoteTickerBanner(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    quotes.forEach { quote ->
+                    state.data.forEach { quote ->
                         QuoteTickerItem(quote = quote)
                     }
                 }
-            }
         }
     }
 }
@@ -315,6 +269,69 @@ private fun QuoteTickerItem(
     }
 }
 
+@Composable
+private fun LoadingRow(
+    label: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .height(24.dp)
+                .width(24.dp),
+            strokeWidth = 2.dp,
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+private fun ErrorSection(
+    error: MarketError,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = error.toMessage(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+        )
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
+    }
+}
+
+private fun MarketError.toMessage(): String =
+    when (this) {
+        MarketError.MissingApiKey ->
+            "Add FINNHUB_API_KEY to local.properties and rebuild."
+
+        MarketError.Unauthorized ->
+            "Finnhub rejected this API key. Check the key and rebuild."
+
+        MarketError.RateLimited ->
+            "Rate limit reached. The free tier allows 60 calls per minute."
+
+        MarketError.Network ->
+            "Can't reach Finnhub. Check your connection and retry."
+
+        is MarketError.Unknown ->
+            message ?: "Something went wrong."
+    }
+
 private fun formatPrice(price: Double): String =
     if (price >= 100) {
         String.format(Locale.US, "%.2f", price)
@@ -344,18 +361,22 @@ private fun StocksScreenPreview() {
     FinnStockTheme {
         StocksScreen(
             state = StocksContract.State(
-                quotes = listOf(
-                    Quote("AAPL", "AAPL", 309.39, -1.91, -0.61),
-                    Quote("MSFT", "MSFT", 483.28, 2.13, 0.44),
+                quotes = SectionState.Content(
+                    listOf(
+                        Quote("AAPL", "AAPL", 309.39, -1.91, -0.61),
+                        Quote("MSFT", "MSFT", 483.28, 2.13, 0.44),
+                    ),
                 ),
-                news = listOf(
-                    NewsArticle(
-                        id = 1,
-                        headline = "Markets open mixed as tech leads gains",
-                        source = "Reuters",
-                        summary = "",
-                        url = "",
-                        datetimeSeconds = System.currentTimeMillis() / 1000,
+                news = SectionState.Content(
+                    listOf(
+                        NewsArticle(
+                            id = 1,
+                            headline = "Markets open mixed as tech leads gains",
+                            source = "Reuters",
+                            summary = "",
+                            url = "",
+                            datetimeSeconds = System.currentTimeMillis() / 1000,
+                        ),
                     ),
                 ),
             ),
