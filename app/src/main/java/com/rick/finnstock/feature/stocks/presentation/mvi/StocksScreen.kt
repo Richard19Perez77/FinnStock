@@ -39,7 +39,6 @@ import com.rick.finnstock.feature.stocks.domain.model.Quote
 import com.rick.finnstock.ui.theme.FinnStockTheme
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
 import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -237,9 +236,7 @@ private fun QuoteTickerItem(
     quote: Quote,
     modifier: Modifier = Modifier,
 ) {
-    val isPositive = quote.change >= 0
-    val changeColor = if (isPositive) Color(0xFF1B7A3D) else Color(0xFFB3261E)
-    val sign = if (isPositive) "" else "-"
+    val changeColor = if (quote.change >= 0) Color(0xFF1B7A3D) else Color(0xFFB3261E)
 
     Column(modifier = modifier) {
         Text(
@@ -257,11 +254,9 @@ private fun QuoteTickerItem(
         Text(
             text = String.format(
                 Locale.US,
-                "%s%.2f%% (%s%.2f)",
-                if (isPositive) "+" else "",
+                "%.2f%% (%.2f)",
                 quote.percentChange,
-                sign,
-                abs(quote.change),
+                quote.change,
             ),
             style = MaterialTheme.typography.bodySmall,
             color = changeColor,
@@ -333,13 +328,7 @@ private fun MarketError.toMessage(): String =
     }
 
 private fun formatPrice(price: Double): String =
-    if (price >= 100) {
-        String.format(Locale.US, "%.2f", price)
-    } else if (price >= 1) {
-        String.format(Locale.US, "%.4f", price)
-    } else {
-        String.format(Locale.US, "%.5f", price)
-    }
+    String.format(Locale.US, "%.2f", price)
 
 private fun formatRelativeTime(datetimeSeconds: Long): String {
     if (datetimeSeconds <= 0L) return ""

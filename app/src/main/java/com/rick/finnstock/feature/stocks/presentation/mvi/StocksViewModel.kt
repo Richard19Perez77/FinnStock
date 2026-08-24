@@ -6,6 +6,7 @@ import com.rick.finnstock.feature.stocks.domain.model.MarketResult
 import com.rick.finnstock.feature.stocks.domain.usecase.GetMarketNewsUseCase
 import com.rick.finnstock.feature.stocks.domain.usecase.GetQuotesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,8 @@ class StocksViewModel @Inject constructor(
     private val _state = MutableStateFlow(StocksContract.State())
     val state: StateFlow<StocksContract.State> = _state.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
         onIntent(StocksContract.Intent.Load)
     }
@@ -33,8 +36,8 @@ class StocksViewModel @Inject constructor(
         when (intent) {
             StocksContract.Intent.Load -> load(isRefresh = false)
             StocksContract.Intent.Refresh -> load(isRefresh = true)
-            StocksContract.Intent.RetryQuotes -> viewModelScope.launch { loadQuotes() }
-            StocksContract.Intent.RetryNews -> viewModelScope.launch { loadNews() }
+            StocksContract.Intent.RetryQuotes -> launchOnce { loadQuotes() }
+            StocksContract.Intent.RetryNews -> launchOnce { loadNews() }
             is StocksContract.Intent.ToggleShuffle ->
                 dispatch(
                     StocksContract.PartialChange.ShuffleToggled(
@@ -45,21 +48,25 @@ class StocksViewModel @Inject constructor(
         }
     }
 
-    private fun load(isRefresh: Boolean) {
-        viewModelScope.launch {
-            if (isRefresh) {
-                dispatch(StocksContract.PartialChange.Refreshing)
-            }
-            coroutineScope {
-                val quotes = async { loadQuotes() }
-                val news = async { loadNews() }
-                quotes.await()
-                news.await()
-            }
-            if (isRefresh) {
-                dispatch(StocksContract.PartialChange.RefreshFinished)
-            }
+    private fun load(isRefresh: Boolean) = launchOnce {
+        if (isRefresh) {
+            dispatch(StocksContract.PartialChange.Refreshing)
         }
+        coroutineScope {
+            val quotes = async { loadQuotes() }
+            val news = async { loadNews() }
+            quotes.await()
+            news.await()
+        }
+        if (isRefresh) {
+            dispatch(StocksContract.PartialChange.RefreshFinished)
+        }
+    }
+
+    /** Repeated pulls would otherwise multiply the calls counted against the free-tier limit. */
+    private fun launchOnce(block: suspend () -> Unit) {
+        if (loadJob?.isActive == true) return
+        loadJob = viewModelScope.launch { block() }
     }
 
     private suspend fun loadQuotes() {

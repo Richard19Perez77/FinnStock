@@ -22,6 +22,7 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private const val FINNHUB_BASE_URL = "https://finnhub.io/api/v1/"
+    private const val FINNHUB_TOKEN_HEADER = "X-Finnhub-Token"
 
     @Provides
     @Singleton
@@ -41,11 +42,10 @@ object NetworkModule {
     fun provideAuthInterceptor(
         @FinnhubApiKey apiKey: String,
     ): Interceptor = Interceptor { chain ->
-        val request = chain.request()
-        val url = request.url.newBuilder()
-            .addQueryParameter("token", apiKey)
+        val request = chain.request().newBuilder()
+            .addHeader(FINNHUB_TOKEN_HEADER, apiKey)
             .build()
-        chain.proceed(request.newBuilder().url(url).build())
+        chain.proceed(request)
     }
 
     @Provides
@@ -58,6 +58,7 @@ object NetworkModule {
             } else {
                 HttpLoggingInterceptor.Level.NONE
             }
+            redactHeader(FINNHUB_TOKEN_HEADER)
         }
 
     @Provides
