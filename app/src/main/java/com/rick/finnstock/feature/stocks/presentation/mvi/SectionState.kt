@@ -13,7 +13,7 @@ val <T> SectionState<T>.contentOrNull: T?
 
 /** Content already on screen survives a reload so a refresh never blanks the section. */
 fun <T> SectionState<T>.toLoadingKeepingContent(): SectionState<T> =
-    if (this is SectionState.Content) this else SectionState.Loading
+    this as? SectionState.Content ?: SectionState.Loading
 
 fun <T> SectionState<T>.toFailureKeepingContent(error: MarketError): SectionState<T> =
-    if (this is SectionState.Content) this else SectionState.Failure(error)
+    this as? SectionState.Content ?: SectionState.Failure(error)
