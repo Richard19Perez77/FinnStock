@@ -7,7 +7,7 @@ object StocksReducer {
         change: StocksContract.PartialChange,
     ): StocksContract.State =
         when (change) {
-            StocksContract.PartialChange.QuotesLoading ->
+            is StocksContract.PartialChange.QuotesLoading ->
                 state.copy(quotes = state.quotes.toLoadingKeepingContent())
 
             is StocksContract.PartialChange.QuotesLoaded ->
@@ -16,7 +16,7 @@ object StocksReducer {
             is StocksContract.PartialChange.QuotesFailed ->
                 state.copy(quotes = state.quotes.toFailureKeepingContent(change.error))
 
-            StocksContract.PartialChange.NewsLoading ->
+            is StocksContract.PartialChange.NewsLoading ->
                 state.copy(news = state.news.toLoadingKeepingContent())
 
             is StocksContract.PartialChange.NewsLoaded ->
@@ -28,10 +28,10 @@ object StocksReducer {
             is StocksContract.PartialChange.NewsFailed ->
                 state.copy(news = state.news.toFailureKeepingContent(change.error))
 
-            StocksContract.PartialChange.Refreshing ->
+            is StocksContract.PartialChange.Refreshing ->
                 state.copy(isRefreshing = true)
 
-            StocksContract.PartialChange.RefreshFinished ->
+            is StocksContract.PartialChange.RefreshFinished ->
                 state.copy(isRefreshing = false)
 
             is StocksContract.PartialChange.ShuffleToggled ->

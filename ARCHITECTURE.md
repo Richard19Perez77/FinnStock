@@ -383,3 +383,7 @@ Each step ships independently and leaves the app working.
   product.
 - **The ticker list is hardcoded.** A user-editable watchlist means persistence, which is the first
   genuine reason to add a database.
+
+
+
+

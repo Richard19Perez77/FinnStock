@@ -29,11 +29,14 @@ class NetworkMarketRepository @Inject constructor(
      * Each symbol is fetched independently so one rejected ticker cannot empty the whole banner.
      */
     override suspend fun getQuotes(): MarketResult<List<Quote>> {
+        // early return with missing api key
         if (apiKey.isBlank()) return MarketResult.Failure(MarketError.MissingApiKey)
 
+        // grouping isolated into individual calls
         val perSymbol = runCatchingCancellable {
             withContext(ioDispatcher) {
                 supervisorScope {
+                    // each entry will have its own scope to fail in
                     TickerSymbol.entries
                         .map { ticker -> async { runCatchingCancellable { fetchQuote(ticker) } } }
                         .awaitAll()
