@@ -1,5 +1,9 @@
 # FinnStock
 
+<p>
+<img src="docs/screenshot.png" width="220" alt="FinnStock market dashboard" />
+</p>
+
 Jetpack Compose market dashboard backed by Finnhub's free REST API.
 
 The home screen has a horizontal ticker banner (TSM, AAPL, NVDA, GOOGL, MSFT, AMZN) and a market-news list underneath. Pull to refresh reloads both sections independently; a shuffle toggle reorders headlines.
